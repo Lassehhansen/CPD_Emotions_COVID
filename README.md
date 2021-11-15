@@ -1,0 +1,1 @@
+# Fluctuations-in-Trust-Anger-on-Twitter-during-COVID-19-in-Denmark
