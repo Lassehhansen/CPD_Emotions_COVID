@@ -1,0 +1,62 @@
+---
+title: "Twitter_Preproc"
+output: html_document
+---
+
+### Loading Packages
+
+```{r}
+pacman::p_load( 
+               tidyr, 
+               tidyverse, 
+               stringr, 
+               cld3,
+               dplyr,
+               
+               )
+```
+
+### Loading Data Createt in Python Script
+
+```{r}
+tweet_list1 <- read_csv("~/Desktop/Lasse/Cognitive Science 4/Social and Cultural dynamics/tweet_list1.csv")
+tweet_list_Danmark_11 <- read_csv("~/Desktop/Lasse/Cognitive Science 4/Social and Cultural dynamics/Twitter Analysis/tweet_test1.csv")
+tweet_list1$LangDetect <- NULL
+tweet_list1$Date <- NULL
+tweet_list1 <- rbind(tweet_list_Danmark_11, tweet_list1)
+tweet_list1 = distinct(tweet_list1, Tweet, .keep_all = TRUE)
+```
+
+### Using Language Detection Algorrithm
+
+```{r}
+tweet_list1$Language = cld3::detect_language(tweet_list1$Tweet)
+tweet_list1 =tweet_list1 %>% filter(Language %in% c("da", "sv", "no"))
+```
+
+```{r}
+tweet_list1$Date <- as.Date(tweet_list1$Datetime)
+```
+
+### Weighting Emotion scores on each day
+
+```{r}
+tweet_list2 = tweet_list1 %>% 
+  group_by(Date) %>% 
+    summarise(
+    total_tweet = n(),
+    Anger = str_count(Bert_Emotion, "Vrede/Irritation"),
+    Trust = str_count(Bert_Emotion, "Tillid/Accept") 
+  )
+
+tweet_list5 = tweet_list2 %>% group_by(Date) %>% 
+     summarise(
+      Total = mean(total_tweet),
+      Anger = sum(Anger),
+      Trust = sum(Trust),
+      Anger = Anger/Total,
+      Trust = Trust/Total,
+     )
+
+write.csv(tweet_list5, "tweet_list.csv")
+```
