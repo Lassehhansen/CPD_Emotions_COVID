@@ -1,0 +1,47 @@
+---
+title: "CPD_Analysis"
+output: html_document
+---
+
+```{r}
+pacman::p_load(bcp, tidyverse)
+```
+
+```{r}
+tweet_list4 <- read_csv("tweet_list.csv")
+```
+
+```{r}
+tweet_list4$Trust_M = pracma::movavg(tweet_list4$Trust, 14, type = "r")
+tweet_list4$Anger_M = pracma::movavg(tweet_list4$Anger, 14, type = "r")
+```
+
+### Changepoint Detection in Anger
+
+```{r}
+set.seed(500)
+Anger <- tweet_list4$Anger_M
+bcp_anger <- bcp(Anger, return.mcmc = TRUE, burnin = 500, mcmc = 5000)
+plot(bcp_anger, main = "Posterior Means and Probabilities of a Change in Anger")
+```
+
+```{r}
+bcp_sum_A <- as.data.frame(summary(bcp_anger))
+bcp_sum_A$Date = tweet_list4$Date
+bcp_sum_A = bcp_sum_A %>% filter(.$Probability >= 0.75)
+```
+
+### Changepoint Detection in Trust
+
+```{r}
+set.seed(500)
+Trust <- tweet_list4$Trust_M
+bcp_trust <- bcp(Trust, return.mcmc = TRUE)
+plot(bcp_trust, main = "Posterior Means and Probabilities of a Change in Trust")
+```
+
+```{r}
+bcp_sum_T <- as.data.frame(summary(bcp_trust))
+bcp_sum_T$Date = tweet_list4$Date
+bcp_sum_T = bcp_sum_T %>% filter(.$Probability >= 0.75)
+```
